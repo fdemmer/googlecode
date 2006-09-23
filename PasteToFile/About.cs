@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace p2f
+namespace PasteToFile
 {
     public partial class About : Form
     {
@@ -19,6 +19,7 @@ namespace p2f
         {
             this.Close();
         }
+
 
 
     }
