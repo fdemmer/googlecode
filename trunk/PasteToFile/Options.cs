@@ -22,10 +22,10 @@ namespace PasteToFile
 
             InitializeComponent();
             ToolTip ToolTips = new ToolTip();
-            ToolTips.SetToolTip(textBox2, sDate);
-            ToolTips.SetToolTip(textBox3, sDate);
             ToolTips.SetToolTip(label3, sDate);
             ToolTips.SetToolTip(label4, sTime);
+            ToolTips.SetToolTip(label6, "Set the time in milliseconds how long the balloon notification in the tray will be visible. Set to 0 to disable.");
+            ToolTips.SetToolTip(label2, "Set the filename for new images. Use the following tags to create a name-mask: <date> <time> <ext>");
             ToolTips.AutomaticDelay = 100;
 
             loadRegistrySettings();
@@ -37,6 +37,7 @@ namespace PasteToFile
             textBox2.Text = Resource.Default_Mask_Date;
             textBox3.Text = Resource.Default_Mask_Time;
             textBox4.Text = Resource.Default_OutputPath;
+            textBox5.Text = Resource.Default_BalloonTimeout.ToString();
             comboBox1.SelectedIndex = Resource.Default_ImageFormat;
         }
 
@@ -46,6 +47,7 @@ namespace PasteToFile
             textBox2.Text = (String)Reg.Key.GetValue(Resource.RegKey_Mask_Date, Resource.Default_Mask_Date);
             textBox3.Text = (String)Reg.Key.GetValue(Resource.RegKey_Mask_Time, Resource.Default_Mask_Time);
             textBox4.Text = (String)Reg.Key.GetValue(Resource.RegKey_OutputPath, Resource.Default_OutputPath);
+            textBox5.Text = (String)Reg.Key.GetValue(Resource.RegKey_BalloonTimeout, Resource.Default_BalloonTimeout).ToString();
             comboBox1.SelectedIndex = (int)Reg.Key.GetValue(Resource.RegKey_ImageFormat, Resource.Default_ImageFormat);
         }
 
@@ -55,6 +57,7 @@ namespace PasteToFile
             Reg.Key.SetValue(Resource.RegKey_Mask_Date, textBox2.Text);
             Reg.Key.SetValue(Resource.RegKey_Mask_Time, textBox3.Text);
             Reg.Key.SetValue(Resource.RegKey_OutputPath, textBox4.Text);
+            Reg.Key.SetValue(Resource.RegKey_BalloonTimeout, int.Parse(textBox5.Text));
             Reg.Key.SetValue(Resource.RegKey_ImageFormat, comboBox1.SelectedIndex);
         }
 
@@ -77,10 +80,16 @@ namespace PasteToFile
             this.loadDefaultSettings();
         }
 
-        private void label5_Click(object sender, EventArgs e)
+        // Browse
+        private void button4_Click(object sender, EventArgs e)
         {
-
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            dialog.Description = "Select the output folder for your images.";
+            DialogResult result = dialog.ShowDialog();
+            if(result == DialogResult.OK)
+                textBox4.Text = dialog.SelectedPath;
         }
+
 
     }
 }

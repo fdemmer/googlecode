@@ -44,8 +44,10 @@ namespace PasteToFile
             this.label5 = new System.Windows.Forms.Label();
             this.textBox4 = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.button4 = new System.Windows.Forms.Button();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.button4 = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.textBox5 = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -85,7 +87,7 @@ namespace PasteToFile
             "tiff"});
             this.comboBox1.Location = new System.Drawing.Point(92, 66);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(207, 21);
+            this.comboBox1.Size = new System.Drawing.Size(120, 21);
             this.comboBox1.TabIndex = 3;
             // 
             // label1
@@ -172,14 +174,13 @@ namespace PasteToFile
             this.label5.Size = new System.Drawing.Size(74, 13);
             this.label5.TabIndex = 4;
             this.label5.Text = "Output path";
-            this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // textBox4
             // 
             this.textBox4.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox4.Location = new System.Drawing.Point(92, 39);
             this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(288, 21);
+            this.textBox4.Size = new System.Drawing.Size(207, 21);
             this.textBox4.TabIndex = 5;
             // 
             // groupBox1
@@ -196,17 +197,6 @@ namespace PasteToFile
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Advanced";
             // 
-            // button4
-            // 
-            this.button4.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button4.Location = new System.Drawing.Point(305, 66);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(75, 21);
-            this.button4.TabIndex = 6;
-            this.button4.Text = "Browse";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button3_Click);
-            // 
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
@@ -217,22 +207,51 @@ namespace PasteToFile
             this.checkBox1.Text = "Uppercase Extension";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
+            // button4
+            // 
+            this.button4.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button4.Location = new System.Drawing.Point(305, 38);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(75, 21);
+            this.button4.TabIndex = 6;
+            this.button4.Text = "Browse";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(221, 69);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(115, 13);
+            this.label6.TabIndex = 4;
+            this.label6.Text = "Balloon notification";
+            // 
+            // textBox5
+            // 
+            this.textBox5.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBox5.Location = new System.Drawing.Point(342, 66);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(38, 21);
+            this.textBox5.TabIndex = 5;
+            // 
             // Options
             // 
-            this.AcceptButton = this.button1;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.button2;
             this.ClientSize = new System.Drawing.Size(392, 223);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.button3);
+            this.Controls.Add(this.textBox5);
             this.Controls.Add(this.textBox4);
+            this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label5);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button2);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -265,6 +284,8 @@ namespace PasteToFile
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox textBox5;
 
     }
 }
