@@ -77,5 +77,10 @@ namespace PasteToFile
             this.loadDefaultSettings();
         }
 
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
     }
 }
