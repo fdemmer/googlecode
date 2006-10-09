@@ -130,8 +130,7 @@ namespace PasteToFile
 
             // prepare notification area
             TrayIcon = new System.Windows.Forms.NotifyIcon();
-            TrayIcon.Icon = new Icon("folder_image.ico");
-            TrayIcon.Visible = true;
+            TrayIcon.Icon = new Icon("folder_image.ico"); //TODO ressource management stuff?
         }
 
         internal void showAbout()
@@ -176,6 +175,7 @@ namespace PasteToFile
         internal void doBalloon(String Message, String Title, ToolTipIcon Icon)
         {
             int timeout = (int)Reg.Key.GetValue(Resource.RegKey_BalloonTimeout, Resource.Default_BalloonTimeout);
+            TrayIcon.Visible = true;
             TrayIcon.ShowBalloonTip(0, Title, Message, Icon);
             System.Threading.Thread.Sleep(timeout); //TODO: that's ugly, but until we have a persistent tray icon...
             TrayIcon.Visible = false;
@@ -214,6 +214,10 @@ namespace PasteToFile
                 image.Save(filename, format);
                 // notify user
                 doBalloon("\"" + filename + "\" successfully written...", Resource.Title, ToolTipIcon.Info);
+            }
+            catch (System.Runtime.InteropServices.ExternalException)
+            {
+                doBalloon("System.Runtime.InteropServices.ExternalException", Resource.Title, ToolTipIcon.Warning);
             }
             catch (System.Security.SecurityException)
             {
