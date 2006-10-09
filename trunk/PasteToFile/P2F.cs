@@ -60,12 +60,6 @@ namespace PasteToFile
             {
                 // open/create subkey read/write
                 Key = hkcu.CreateSubKey(Resource.RegistryPath + name);
-                /*Key.SetValue(Resource.RegKey_ImageFormat, Resource.Default_ImageFormat);
-                Key.SetValue(Resource.RegKey_OutputPath,  Resource.Default_OutputPath);
-                Key.SetValue(Resource.RegKey_Mask_File,   Resource.Default_Mask_File);
-                Key.SetValue(Resource.RegKey_Mask_Date,   Resource.Default_Mask_Date);
-                Key.SetValue(Resource.RegKey_Mask_Time,   Resource.Default_Mask_Time);
-                Key.SetValue(Resource.RegKey_Version,     Resource.Version);*/
             }
             catch (System.ObjectDisposedException)
             {
@@ -111,6 +105,7 @@ namespace PasteToFile
         internal static String RegKey_Mask_Time     = "TimeMask";
         internal static String RegKey_OutputPath    = "OutputPath";
         internal static String RegKey_ImageFormat   = "ImageFormat";
+        internal static String RegKey_BalloonTimeout = "BalloonTimeout";
         internal static String Mask_Date            = "<date>";
         internal static String Mask_Time            = "<time>";
         internal static String Mask_Extension       = "<ext>";
@@ -119,17 +114,24 @@ namespace PasteToFile
         internal static String Default_Mask_Time    = "HHmmss";
         internal static String Default_OutputPath   = "";
         internal static int    Default_ImageFormat  = 0;
+        internal static int    Default_BalloonTimeout = 3000;
 
     } // end of class
 
     class Program
     {
         internal Registry Reg;
+        internal NotifyIcon TrayIcon;
 
         public Program()
         {
             // access registry
             Reg = new Registry();
+
+            // prepare notification area
+            TrayIcon = new System.Windows.Forms.NotifyIcon();
+            TrayIcon.Icon = new Icon("App.ico");
+            TrayIcon.Visible = true;
         }
 
         internal void showAbout()
@@ -162,13 +164,21 @@ namespace PasteToFile
 
             String path = (string)Reg.Key.GetValue(Resource.RegKey_OutputPath, Resource.Default_OutputPath);
             /*
-             *    .    does not work
+             *    .    does not work, use just ""
              *    /    root of the directory p2f runs on
              *    ../  one directoy up of place where p2f is run
              *    c:\  well... c:! :)
              * 
              */
             return path+filename;
+        }
+
+        internal void doBalloon(String Message, String Title, ToolTipIcon Icon)
+        {
+            int timeout = (int)Reg.Key.GetValue(Resource.RegKey_BalloonTimeout, Resource.Default_BalloonTimeout);
+            TrayIcon.ShowBalloonTip(0, Title, Message, Icon);
+            System.Threading.Thread.Sleep(timeout); //TODO: that's ugly, but until we have a persistent tray icon...
+            TrayIcon.Visible = false;
         }
 
         internal void doPaste(IDataObject obj)
@@ -202,23 +212,20 @@ namespace PasteToFile
             {
                 // write output file
                 image.Save(filename, format);
-
-                //TODO: show baloon when successfully saved (if that is set that way in the optionns)
+                // notify user
+                doBalloon("\"" + filename + "\" successfully written...", Resource.Title, ToolTipIcon.Info);
             }
             catch (System.Security.SecurityException)
             {
-                System.Windows.Forms.MessageBox.Show("Sorry, this cannot be run on a network drive!",
-                    "SecurityException", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                doBalloon("Sorry, this cannot be run on a network drive!", Resource.Title, ToolTipIcon.Warning);
             }
             catch (System.ArgumentException)
             {
-                System.Windows.Forms.MessageBox.Show("Check your filename for invalid characters! (" + filename + ")",
-                    "ArgumentException", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                doBalloon("Check your filename for invalid characters! (" + filename + ")", Resource.Title, ToolTipIcon.Warning);
             }
             catch (System.NotSupportedException)
             {
-                System.Windows.Forms.MessageBox.Show("Check your filename for invalid characters! (" + filename + ")",
-                    "ArgumentException", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                doBalloon("Check your filename for invalid characters! (" + filename + ")", Resource.Title, ToolTipIcon.Warning);
             }
 
         }
@@ -249,9 +256,7 @@ namespace PasteToFile
                 // do not continue if there is nothing in the clipboard
                 if (Clipboard.GetDataObject() == null)
                 {
-                     System.Windows.Forms.MessageBox.Show(
-                        "Sorry, the clipboard seems to be empty!",
-                        "No picture found!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    prog.doBalloon("Sorry, the clipboard seems to be empty!", Resource.Title, ToolTipIcon.Warning);
                 }
                 else
                 {
@@ -259,9 +264,7 @@ namespace PasteToFile
                     IDataObject obj = Clipboard.GetDataObject();
                     if (!obj.GetDataPresent(DataFormats.Bitmap))
                     {
-                        System.Windows.Forms.MessageBox.Show(
-                            "Sorry, there is no useable image data in the clipboard!",
-                            "No picture found!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        prog.doBalloon("Sorry, there is no useable image data in the clipboard!", Resource.Title, ToolTipIcon.Warning);
                     }
                     else
                     {
