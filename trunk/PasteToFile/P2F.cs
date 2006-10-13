@@ -130,7 +130,7 @@ namespace PasteToFile
 
             // prepare notification area
             TrayIcon = new System.Windows.Forms.NotifyIcon();
-            TrayIcon.Icon = new Icon("folder_image.ico"); //TODO ressource management stuff?
+            TrayIcon.Icon = Resources.IconApp;
         }
 
         internal void showAbout()
