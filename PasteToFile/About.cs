@@ -20,6 +20,20 @@ namespace PasteToFile
             this.Close();
         }
 
+        // show License
+        private void button3_Click(object sender, EventArgs e)
+        {
+            String file = System.IO.Path.Combine(Application.StartupPath, "LICENSE.txt");
+            System.Diagnostics.Process.Start(file);
+        }
+
+        // show help
+        private void button2_Click(object sender, EventArgs e)
+        {
+            String file = System.IO.Path.Combine(Application.StartupPath, "README.txt");
+            System.Diagnostics.Process.Start(file);
+        }
+
 
 
     }

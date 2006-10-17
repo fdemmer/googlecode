@@ -52,7 +52,7 @@ namespace PasteToFile
             // label2
             // 
             this.label2.Font = new System.Drawing.Font("Verdana", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(12, 59);
+            this.label2.Location = new System.Drawing.Point(12, 36);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(368, 40);
             this.label2.TabIndex = 0;
@@ -73,7 +73,7 @@ namespace PasteToFile
             // label4
             // 
             this.label4.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(12, 149);
+            this.label4.Location = new System.Drawing.Point(12, 126);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(368, 20);
             this.label4.TabIndex = 1;
@@ -84,7 +84,7 @@ namespace PasteToFile
             // label6
             // 
             this.label6.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(12, 99);
+            this.label6.Location = new System.Drawing.Point(12, 76);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(368, 30);
             this.label6.TabIndex = 4;
@@ -94,7 +94,7 @@ namespace PasteToFile
             // label3
             // 
             this.label3.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(12, 129);
+            this.label3.Location = new System.Drawing.Point(12, 106);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(368, 20);
             this.label3.TabIndex = 4;
@@ -110,6 +110,7 @@ namespace PasteToFile
             this.button2.TabIndex = 3;
             this.button2.Text = "Help";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // button3
             // 
@@ -120,6 +121,7 @@ namespace PasteToFile
             this.button3.TabIndex = 3;
             this.button3.Text = "License";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // About
             // 

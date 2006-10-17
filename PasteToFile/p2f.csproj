@@ -134,7 +134,7 @@
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>copy $(ProjectDir)\LICENSE.txt $(TargetDir)
+copy $(ProjectDir)\README.txt $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
 </Project>
