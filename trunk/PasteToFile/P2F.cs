@@ -30,9 +30,9 @@ namespace PasteToFile
         {
             hkcu = Microsoft.Win32.Registry.CurrentUser;
             // open existing settings, writeable
-            if ((Key = open(Resource.Title, true)) == null)
+            if ((Key = open(Ressource.Title, true)) == null)
                 // key was not found, create a new one
-                Key = create(Resource.Title);
+                Key = create(Ressource.Title);
         }
 
         private Microsoft.Win32.RegistryKey open(String name, bool writeable)
@@ -40,7 +40,7 @@ namespace PasteToFile
             try
             {
                 // open subkey
-                Key = hkcu.OpenSubKey(Resource.RegistryPath + name, writeable);
+                Key = hkcu.OpenSubKey(Ressource.RegistryPath + name, writeable);
             }
             catch (System.ObjectDisposedException)
             {
@@ -59,7 +59,7 @@ namespace PasteToFile
             try
             {
                 // open/create subkey read/write
-                Key = hkcu.CreateSubKey(Resource.RegistryPath + name);
+                Key = hkcu.CreateSubKey(Ressource.RegistryPath + name);
             }
             catch (System.ObjectDisposedException)
             {
@@ -84,12 +84,12 @@ namespace PasteToFile
         // remove all values from registry
         private void remove(String name)
         {
-            hkcu.DeleteSubKeyTree(Resource.RegistryPath+name);
+            hkcu.DeleteSubKeyTree(Ressource.RegistryPath+name);
         }
 
     } // end of class
 
-    class Resource
+    class Ressource
     {
         internal static String Title        = "PasteToFile";
         internal static String Version      = "0.2";
@@ -146,22 +146,22 @@ namespace PasteToFile
         private String getFilename(String extension)
         {
             // retrieve filename mask setting
-            String filename = (String)Reg.Key.GetValue(Resource.RegKey_Mask_File, Resource.Default_Mask_File);
+            String filename = (String)Reg.Key.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
 
             // generate timestamps
             DateTime d = DateTime.Now;
-            String date = d.ToString((String)Reg.Key.GetValue(Resource.RegKey_Mask_Date, Resource.Default_Mask_Date));
-            String time = d.ToString((String)Reg.Key.GetValue(Resource.RegKey_Mask_Time, Resource.Default_Mask_Time));
+            String date = d.ToString((String)Reg.Key.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date));
+            String time = d.ToString((String)Reg.Key.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time));
 
             // replace tags in filemask
-            if (filename.Contains(Resource.Mask_Date))
-                filename = filename.Replace(Resource.Mask_Date, date);
-            if (filename.Contains(Resource.Mask_Time))
-                filename = filename.Replace(Resource.Mask_Time, time);
-            if (filename.Contains(Resource.Mask_Extension))
-                filename = filename.Replace(Resource.Mask_Extension, extension);
+            if (filename.Contains(Ressource.Mask_Date))
+                filename = filename.Replace(Ressource.Mask_Date, date);
+            if (filename.Contains(Ressource.Mask_Time))
+                filename = filename.Replace(Ressource.Mask_Time, time);
+            if (filename.Contains(Ressource.Mask_Extension))
+                filename = filename.Replace(Ressource.Mask_Extension, extension);
 
-            String path = (string)Reg.Key.GetValue(Resource.RegKey_OutputPath, Resource.Default_OutputPath);
+            String path = (string)Reg.Key.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
             /*
              *    .    does not work, use just ""
              *    /    root of the directory p2f runs on
@@ -174,7 +174,7 @@ namespace PasteToFile
 
         internal void doBalloon(String Message, String Title, ToolTipIcon Icon)
         {
-            int timeout = (int)Reg.Key.GetValue(Resource.RegKey_BalloonTimeout, Resource.Default_BalloonTimeout);
+            int timeout = (int)Reg.Key.GetValue(Ressource.RegKey_BalloonTimeout, Ressource.Default_BalloonTimeout);
             TrayIcon.Visible = true;
             TrayIcon.ShowBalloonTip(0, Title, Message, Icon);
             System.Threading.Thread.Sleep(timeout); //TODO: that's ugly, but until we have a persistent tray icon...
@@ -189,7 +189,7 @@ namespace PasteToFile
             // set output format and file extension
             ImageFormat format;
             String extension;
-            switch ((int)Reg.Key.GetValue(Resource.RegKey_ImageFormat, Resource.Default_ImageFormat))
+            switch ((int)Reg.Key.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat))
             {
                 case 0:
                     format = ImageFormat.Png; extension = "png"; break;
@@ -213,23 +213,23 @@ namespace PasteToFile
                 // write output file
                 image.Save(filename, format);
                 // notify user
-                doBalloon("\"" + filename + "\" successfully written...", Resource.Title, ToolTipIcon.Info);
+                doBalloon("\"" + filename + "\" successfully written...", Ressource.Title, ToolTipIcon.Info);
             }
             catch (System.Runtime.InteropServices.ExternalException)
             {
-                doBalloon("System.Runtime.InteropServices.ExternalException", Resource.Title, ToolTipIcon.Warning);
+                doBalloon("System.Runtime.InteropServices.ExternalException", Ressource.Title, ToolTipIcon.Warning);
             }
             catch (System.Security.SecurityException)
             {
-                doBalloon("Sorry, this cannot be run on a network drive!", Resource.Title, ToolTipIcon.Warning);
+                doBalloon("Sorry, this cannot be run on a network drive!", Ressource.Title, ToolTipIcon.Warning);
             }
             catch (System.ArgumentException)
             {
-                doBalloon("Check your filename for invalid characters! (" + filename + ")", Resource.Title, ToolTipIcon.Warning);
+                doBalloon("Check your filename for invalid characters! (" + filename + ")", Ressource.Title, ToolTipIcon.Warning);
             }
             catch (System.NotSupportedException)
             {
-                doBalloon("Check your filename for invalid characters! (" + filename + ")", Resource.Title, ToolTipIcon.Warning);
+                doBalloon("Check your filename for invalid characters! (" + filename + ")", Ressource.Title, ToolTipIcon.Warning);
             }
 
         }
@@ -260,7 +260,7 @@ namespace PasteToFile
                 // do not continue if there is nothing in the clipboard
                 if (Clipboard.GetDataObject() == null)
                 {
-                    prog.doBalloon("Sorry, the clipboard seems to be empty!", Resource.Title, ToolTipIcon.Warning);
+                    prog.doBalloon("Sorry, the clipboard seems to be empty!", Ressource.Title, ToolTipIcon.Warning);
                 }
                 else
                 {
@@ -268,7 +268,7 @@ namespace PasteToFile
                     IDataObject obj = Clipboard.GetDataObject();
                     if (!obj.GetDataPresent(DataFormats.Bitmap))
                     {
-                        prog.doBalloon("Sorry, there is no useable image data in the clipboard!", Resource.Title, ToolTipIcon.Warning);
+                        prog.doBalloon("Sorry, there is no useable image data in the clipboard!", Ressource.Title, ToolTipIcon.Warning);
                     }
                     else
                     {
