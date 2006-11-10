@@ -8,13 +8,13 @@ using System.Windows.Forms;
 
 namespace PasteToFile
 {
-    public partial class Options : Form
+    internal partial class Options : Form
     {
-        internal Registry Reg;
+        internal RegistryHandler Reg;
 
-        internal Options(Registry Reg)
+        internal Options(RegistryHandler reg)
         {
-            this.Reg = Reg;
+            Reg = reg;
 
             //TODO move text to ressource or configuration or something
             String sDate = "d :08/17/2000 \nD :Thursday, August 17, 2000\nf :Thursday, August 17, 2000 16:32\nF :Thursday, August 17, 2000 16:32:32\ng :08/17/2000 16:32\nG :08/17/2000 16:32:32\nm :August 17\nr :Thu, 17 Aug 2000 23:32:32 GMT\ns :2000-08-17T16:32:32\nt :16:32\nT :16:32:32\nu :2000-08-17 23:32:32Z\nU :Thursday, August 17, 2000 23:32:32\ny :August, 2000\ndddd, MMMM dd yyyy :Thursday, August 17 2000\nddd, MMM d \"'\"yy :Thu, Aug 17 '00\ndddd, MMMM dd :Thursday, August 17\nM/yy :8/00\ndd-MM-yy :17-08-00";
@@ -42,132 +42,58 @@ namespace PasteToFile
             textBox4.Text = Ressource.Default_OutputPath;
             textBox5.Text = Ressource.Default_BalloonTimeout.ToString();
             comboBox1.SelectedIndex = Ressource.Default_ImageFormat;
-            checkBox2.Checked = true;
+            checkBox1.Checked = Ressource.Default_UpperCaseExt;
+            checkBox2.Checked = Ressource.Default_ContextItem;
         }
 
         private void loadRegistrySettings()
         {
-            textBox1.Text = (String)Reg.Key.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
-            textBox2.Text = (String)Reg.Key.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date);
-            textBox3.Text = (String)Reg.Key.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time);
-            textBox4.Text = (String)Reg.Key.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
-            textBox5.Text = (String)Reg.Key.GetValue(Ressource.RegKey_BalloonTimeout, Ressource.Default_BalloonTimeout).ToString();
-            comboBox1.SelectedIndex = (int)Reg.Key.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat);
-            checkBox2.Checked = this.existingContextItem();
+            textBox1.Text = (String)Reg.Config.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
+            textBox2.Text = (String)Reg.Config.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date);
+            textBox3.Text = (String)Reg.Config.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time);
+            textBox4.Text = (String)Reg.Config.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
+            textBox5.Text = (String)Reg.Config.GetValue(Ressource.RegKey_BalloonTimeout, Ressource.Default_BalloonTimeout).ToString();
+            comboBox1.SelectedIndex = (int)Reg.Config.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat);
+            checkBox1.Checked = bool.Parse((String)Reg.Config.GetValue(Ressource.RegKey_UpperCaseExt, Ressource.Default_UpperCaseExt));
+            checkBox2.Checked = Reg.existingContextItem();
         }
 
         private void saveRegistrySettings()
         {
-            Reg.Key.SetValue(Ressource.RegKey_Mask_File, textBox1.Text);
-            Reg.Key.SetValue(Ressource.RegKey_Mask_Date, textBox2.Text);
-            Reg.Key.SetValue(Ressource.RegKey_Mask_Time, textBox3.Text);
-            Reg.Key.SetValue(Ressource.RegKey_OutputPath, textBox4.Text);
-            Reg.Key.SetValue(Ressource.RegKey_BalloonTimeout, int.Parse(textBox5.Text));
-            Reg.Key.SetValue(Ressource.RegKey_ImageFormat, comboBox1.SelectedIndex);
+            Reg.Config.SetValue(Ressource.RegKey_Mask_File, textBox1.Text);
+            Reg.Config.SetValue(Ressource.RegKey_Mask_Date, textBox2.Text);
+            Reg.Config.SetValue(Ressource.RegKey_Mask_Time, textBox3.Text);
+            Reg.Config.SetValue(Ressource.RegKey_OutputPath, textBox4.Text);
+            Reg.Config.SetValue(Ressource.RegKey_BalloonTimeout, int.Parse(textBox5.Text));
+            Reg.Config.SetValue(Ressource.RegKey_ImageFormat, comboBox1.SelectedIndex);
+            Reg.Config.SetValue(Ressource.RegKey_UpperCaseExt, checkBox1.Checked);
 
             if (checkBox2.Checked == true)
-                this.registerContextItem();
+                Reg.registerContextItem("PasteToFile here...", Application.ExecutablePath);
             else
-                this.removeContextItem();
+                Reg.deleteContextItem();
         }
 
-        // context menu stuff
-        private const string MenuName = "Folder\\shell\\PasteToFile";
-        private const string Command = "Folder\\shell\\PasteToFile\\command";
-
-        //TODO merge with other registry stuff
-        private void registerContextItem()
-        {
-            Microsoft.Win32.RegistryKey RegMenu = null;
-            Microsoft.Win32.RegistryKey RegCommand = null;
-            try
-            {
-                RegMenu = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(MenuName);
-                if (RegMenu != null)
-                    RegMenu.SetValue("", "PasteToFile here...");
-                RegCommand = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(Command);
-                if (RegCommand != null)
-                    RegCommand.SetValue("", Application.ExecutablePath);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.ToString());
-            }
-            finally
-            {
-                if (RegMenu != null)
-                    RegMenu.Close();
-                if (RegCommand != null)
-                    RegCommand.Close();
-            }
-        }
-
-        private void removeContextItem()
-        {
-            Microsoft.Win32.RegistryKey RegKey = null;
-            try
-            {
-                RegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(Command);
-                if (RegKey != null)
-                {
-                    RegKey.Close();
-                    Microsoft.Win32.Registry.ClassesRoot.DeleteSubKey(Command);
-                }
-                RegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(MenuName);
-                if (RegKey != null)
-                {
-                    RegKey.Close();
-                    Microsoft.Win32.Registry.ClassesRoot.DeleteSubKey(MenuName);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.ToString());
-            }
-        }
-
-        private bool existingContextItem()
-        {
-            bool retval = false;
-            Microsoft.Win32.RegistryKey RegMenu = null;
-            Microsoft.Win32.RegistryKey RegCommand = null;
-
-            try
-            {
-                RegCommand = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(Command);
-                RegMenu = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(MenuName);
-                if (RegCommand != null && RegMenu != null)
-                    retval = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.ToString());
-            } 
-            
-            return retval;
-        }
-
-
-        // OK
+        // "OK" Button
         private void button1_Click(object sender, EventArgs e)
         {
             this.saveRegistrySettings();
             this.Close();
         }
 
-        // Cancel
+        // "Cancel" Button
         private void button2_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        // Reset
+        // "Reset" Button
         private void button3_Click(object sender, EventArgs e)
         {
             this.loadDefaultSettings();
         }
 
-        // Browse
+        // "Browse" Button
         private void button4_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
