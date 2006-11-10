@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace PasteToFile
 {
-    public partial class About : Form
+    internal partial class About : Form
     {
         public About()
         {

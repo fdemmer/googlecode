@@ -17,22 +17,37 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace PasteToFile
 {
 
-    class Registry
+    class RegistryHandler
     {
-        private Microsoft.Win32.RegistryKey hkcu;
-        internal Microsoft.Win32.RegistryKey Key;
-        
-        public Registry()
+        private RegistryKey hkcu;       // HKEY_CURRENT_USER
+        private RegistryKey hkcr;       // HKEY_CLASSES_ROOT
+
+        private String PathText;        // path of registry key for contextmenu text
+        private String PathCommand;     // path of registry key for contextmenu command 
+        private String PathSoftware;    // path of registry key for configuration
+
+        internal RegistryKey Config;    // registry key for configuration key/values
+        private RegistryKey RegMenu;    // registry key for contextmenu text
+        private RegistryKey RegCommand; // registry key for contextmenu command
+
+        public RegistryHandler()
         {
-            hkcu = Microsoft.Win32.Registry.CurrentUser;
+            hkcu = Registry.CurrentUser;
+            hkcr = Registry.ClassesRoot;
+
+            PathText = "Folder\\shell\\" + Ressource.Title;
+            PathCommand = "Folder\\shell\\" + Ressource.Title + "\\command";
+            PathSoftware = "Software\\";
+
             // open existing settings, writeable
-            if ((Key = open(Ressource.Title, true)) == null)
-                // key was not found, create a new one
-                Key = create(Ressource.Title);
+            //if ((Config = open(Ressource.RegistryPath + Ressource.Title, true)) == null)
+                // key was not found, create a new one, writeable
+            Config = createCurrentUserKey(PathSoftware + Ressource.Title);
         }
 
         private Microsoft.Win32.RegistryKey open(String name, bool writeable)
@@ -40,7 +55,7 @@ namespace PasteToFile
             try
             {
                 // open subkey
-                Key = hkcu.OpenSubKey(Ressource.RegistryPath + name, writeable);
+                Config = hkcu.OpenSubKey(PathSoftware + name, writeable);
             }
             catch (System.ObjectDisposedException)
             {
@@ -50,16 +65,18 @@ namespace PasteToFile
             {
                 // insufficient rights to access key
             }
-            return Key;
+            return Config;
         }
 
-        // create the registry key
-        private Microsoft.Win32.RegistryKey create(String name)
+        // create a new registry key
+        private RegistryKey createKey(String name, RegistryKey hierachy)
         {
+            RegistryKey key = null;
+
             try
             {
-                // open/create subkey read/write
-                Key = hkcu.CreateSubKey(Ressource.RegistryPath + name);
+                // open/create *key* with read/write in *hierachy*
+                key = hierachy.CreateSubKey(name);
             }
             catch (System.ObjectDisposedException)
             {
@@ -78,13 +95,101 @@ namespace PasteToFile
                 // insufficient rights to access key
             }
 
-            return Key;
+            return key;
         }
 
-        // remove all values from registry
-        private void remove(String name)
+        // create a new registry key in the CURRENT_USER hierachy
+        internal RegistryKey createCurrentUserKey(String name)
         {
-            hkcu.DeleteSubKeyTree(Ressource.RegistryPath+name);
+            return createKey(name, hkcu);
+        }
+
+        // create a new registry key in the CLASSES_ROOT hierachy
+        internal RegistryKey createClassesRootKey(String name)
+        {
+            return createKey(name, hkcr);
+        }
+
+        // remove a registry key from the CURRENT_USER hierachy
+        private void removeCurrentUserKey(String name)
+        {
+            hkcu.DeleteSubKeyTree(name);
+        }
+
+        // remove a registry key from the CLASSES_ROOT hierachy
+        private void removeClassesRootKey(String name)
+        {
+            hkcr.DeleteSubKeyTree(name);
+        }
+
+        internal void registerContextItem(String text, String command)
+        {
+            try
+            {
+                RegMenu = Registry.ClassesRoot.CreateSubKey(PathText);
+                if (RegMenu != null)
+                    RegMenu.SetValue("", text);
+                RegCommand = Registry.ClassesRoot.CreateSubKey(PathCommand);
+                if (RegCommand != null)
+                    RegCommand.SetValue("", command);
+            }
+            catch (Exception ex)
+            {
+                //TODO make doballoon global
+                //prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+            }
+            finally
+            {
+                if (RegMenu != null)
+                    RegMenu.Close();
+                if (RegCommand != null)
+                    RegCommand.Close();
+            }
+        }
+
+        internal void deleteContextItem()
+        {
+            RegistryKey RegKey = null;
+            try
+            {
+                RegKey = hkcr.OpenSubKey(PathCommand);
+                if (RegKey != null)
+                {
+                    RegKey.Close();
+                    hkcr.DeleteSubKey(PathCommand);
+                }
+                RegKey = Registry.ClassesRoot.OpenSubKey(PathText);
+                if (RegKey != null)
+                {
+                    RegKey.Close();
+                    hkcr.DeleteSubKey(PathText);
+                }
+            }
+            catch (Exception ex)
+            {
+                //TODO make doballoon global
+                //prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+            }
+        }
+
+        internal bool existingContextItem()
+        {
+            bool retval = false;
+
+            try
+            {
+                RegCommand = hkcr.OpenSubKey(PathCommand);
+                RegMenu = hkcr.OpenSubKey(PathText);
+                if (RegCommand != null && RegMenu != null)
+                    retval = true;
+            }
+            catch (Exception ex)
+            {
+                //TODO make doballoon global
+                //prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+            }
+
+            return retval;
         }
 
     } // end of class
@@ -98,13 +203,13 @@ namespace PasteToFile
         internal static String Email        = "florian@demmer.org";
         internal static String License      = "GPL 2.0";
     
-        internal static String RegistryPath         = "Software\\";
         internal static String RegKey_Version       = "Version";
         internal static String RegKey_Mask_File     = "FileMask";
         internal static String RegKey_Mask_Date     = "DateMask";
         internal static String RegKey_Mask_Time     = "TimeMask";
         internal static String RegKey_OutputPath    = "OutputPath";
         internal static String RegKey_ImageFormat   = "ImageFormat";
+        internal static String RegKey_UpperCaseExt  = "UppercaseExtension";
         internal static String RegKey_BalloonTimeout = "BalloonTimeout";
         internal static String Mask_Date            = "<date>";
         internal static String Mask_Time            = "<time>";
@@ -113,6 +218,8 @@ namespace PasteToFile
         internal static String Default_Mask_Date    = "yyyyMMdd";
         internal static String Default_Mask_Time    = "HHmmss";
         internal static String Default_OutputPath   = "";
+        internal static bool   Default_UpperCaseExt = false;
+        internal static bool   Default_ContextItem  = true;
         internal static int    Default_ImageFormat  = 0;
         internal static int    Default_BalloonTimeout = 3000;
 
@@ -120,13 +227,13 @@ namespace PasteToFile
 
     class Program
     {
-        internal Registry Reg;
+        internal RegistryHandler Reg;
         internal NotifyIcon TrayIcon;
 
         public Program()
         {
             // access registry
-            Reg = new Registry();
+            Reg = new RegistryHandler();
 
             // prepare notification area
             TrayIcon = new System.Windows.Forms.NotifyIcon();
@@ -146,12 +253,12 @@ namespace PasteToFile
         private String getFilename(String extension)
         {
             // retrieve filename mask setting
-            String filename = (String)Reg.Key.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
+            String filename = (String)Reg.Config.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
 
             // generate timestamps
             DateTime d = DateTime.Now;
-            String date = d.ToString((String)Reg.Key.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date));
-            String time = d.ToString((String)Reg.Key.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time));
+            String date = d.ToString((String)Reg.Config.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date));
+            String time = d.ToString((String)Reg.Config.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time));
 
             // replace tags in filemask
             if (filename.Contains(Ressource.Mask_Date))
@@ -161,27 +268,40 @@ namespace PasteToFile
             if (filename.Contains(Ressource.Mask_Extension))
                 filename = filename.Replace(Ressource.Mask_Extension, extension);
 
-            String path = (string)Reg.Key.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
+            String path = (string)Reg.Config.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
+
+            if (path == "")
+                path = Application.StartupPath + "\\" + filename;
+            else if (System.IO.Directory.Exists(path))
+                path = path + "\\" + filename;
+            else
+            {
+                doBalloon("Directory \"" + path + "\" does not exist!\n Writing file to execution directory.", Ressource.Title, ToolTipIcon.Error);
+                path = Application.StartupPath + "\\" + filename;
+            }
+
             /*
              *    .    does not work, use just ""
+             *    ""   empty... pastes to execution dir
              *    /    root of the directory p2f runs on
              *    ../  one directoy up of place where p2f is run
              *    c:\  well... c:! :)
              * 
              */
-            return path+filename;
+
+            return path;
         }
 
         internal void doBalloon(String Message, String Title, ToolTipIcon Icon)
         {
-            int timeout = (int)Reg.Key.GetValue(Ressource.RegKey_BalloonTimeout, Ressource.Default_BalloonTimeout);
+            int timeout = (int)Reg.Config.GetValue(Ressource.RegKey_BalloonTimeout, Ressource.Default_BalloonTimeout);
             TrayIcon.Visible = true;
             TrayIcon.ShowBalloonTip(0, Title, Message, Icon);
             System.Threading.Thread.Sleep(timeout); //TODO: that's ugly, but until we have a persistent tray icon...
             TrayIcon.Visible = false;
         }
 
-        internal void doPaste(IDataObject obj)
+        internal void doPaste(IDataObject obj) //, bool currentDirectory
         {
             // get the image data from the clipboard
             Image image = (Image)obj.GetData(DataFormats.Bitmap);
@@ -189,7 +309,7 @@ namespace PasteToFile
             // set output format and file extension
             ImageFormat format;
             String extension;
-            switch ((int)Reg.Key.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat))
+            switch ((int)Reg.Config.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat))
             {
                 case 0:
                     format = ImageFormat.Png; extension = "png"; break;
@@ -205,8 +325,13 @@ namespace PasteToFile
                     format = ImageFormat.Png; extension = "png"; break;
             }
 
+            // make extension uppercase
+            if(bool.Parse((String)Reg.Config.GetValue(Ressource.RegKey_UpperCaseExt, Ressource.Default_UpperCaseExt)))
+                extension.ToUpper();
+
             // create a filename
             String filename = getFilename(extension);
+            //TODO seperate filename and directory retrival to make paste here and paste to default dir possible
 
             try
             {
@@ -273,7 +398,10 @@ namespace PasteToFile
                     else
                     {
                         // ONLY if there really is something useful available continue...
-                        prog.doPaste(obj);
+                        //if (Switches["here"] != null)
+                        //    prog.doPaste(obj,bool);
+                        //else
+                            prog.doPaste(obj);
                     }            
                 }            
 
