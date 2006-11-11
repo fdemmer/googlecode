@@ -42,8 +42,8 @@ namespace PasteToFile
             textBox4.Text = Ressource.Default_OutputPath;
             textBox5.Text = Ressource.Default_BalloonTimeout.ToString();
             comboBox1.SelectedIndex = Ressource.Default_ImageFormat;
-            checkBox1.Checked = Ressource.Default_UpperCaseExt;
-            checkBox2.Checked = Ressource.Default_ContextItem;
+            checkBox1.Checked = bool.Parse(Ressource.Default_UpperCaseExt);
+            checkBox2.Checked = bool.Parse(Ressource.Default_ContextItem);
         }
 
         private void loadRegistrySettings()

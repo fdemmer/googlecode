@@ -56,7 +56,7 @@ namespace PasteToFile
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(368, 40);
             this.label2.TabIndex = 0;
-            this.label2.Text = "PasteToFile 0.2";
+            this.label2.Text = "PasteToFile 0.2.1";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // button1

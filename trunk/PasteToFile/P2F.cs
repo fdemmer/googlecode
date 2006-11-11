@@ -2,12 +2,10 @@
 
 PasteToFile
 
-Version     0.2
+Version     0.2.1
 Constact    <florian@demmer.org>
 WWW         http://florian.demmer.org
 License     GPL 2.0
-
-requires .net Framework 2.0
 
 */
 
@@ -24,6 +22,8 @@ namespace PasteToFile
 
     class RegistryHandler
     {
+        private Program Prog;
+
         private RegistryKey hkcu;       // HKEY_CURRENT_USER
         private RegistryKey hkcr;       // HKEY_CLASSES_ROOT
 
@@ -35,8 +35,10 @@ namespace PasteToFile
         private RegistryKey RegMenu;    // registry key for contextmenu text
         private RegistryKey RegCommand; // registry key for contextmenu command
 
-        public RegistryHandler()
+        public RegistryHandler(Program prog)
         {
+            Prog = prog;
+
             hkcu = Registry.CurrentUser;
             hkcr = Registry.ClassesRoot;
 
@@ -44,18 +46,19 @@ namespace PasteToFile
             PathCommand = "Folder\\shell\\" + Ressource.Title + "\\command";
             PathSoftware = "Software\\";
 
-            // open existing settings, writeable
-            //if ((Config = open(Ressource.RegistryPath + Ressource.Title, true)) == null)
-                // key was not found, create a new one, writeable
-            Config = createCurrentUserKey(PathSoftware + Ressource.Title);
+            // open or create configuration key, writeable
+            Config = openOrCreateKey(PathSoftware + Ressource.Title, hkcu);
         }
 
-        private Microsoft.Win32.RegistryKey open(String name, bool writeable)
+        // open read only or writeable
+        private Microsoft.Win32.RegistryKey openKey(String name, RegistryKey hierachy, bool writeable)
         {
+            RegistryKey key = null;
+
             try
             {
                 // open subkey
-                Config = hkcu.OpenSubKey(PathSoftware + name, writeable);
+                key = hierachy.OpenSubKey(name, writeable);
             }
             catch (System.ObjectDisposedException)
             {
@@ -65,11 +68,12 @@ namespace PasteToFile
             {
                 // insufficient rights to access key
             }
-            return Config;
+
+            return key;
         }
 
-        // create a new registry key
-        private RegistryKey createKey(String name, RegistryKey hierachy)
+        // create or open writeable
+        private RegistryKey openOrCreateKey(String name, RegistryKey hierachy)
         {
             RegistryKey key = null;
 
@@ -98,30 +102,6 @@ namespace PasteToFile
             return key;
         }
 
-        // create a new registry key in the CURRENT_USER hierachy
-        internal RegistryKey createCurrentUserKey(String name)
-        {
-            return createKey(name, hkcu);
-        }
-
-        // create a new registry key in the CLASSES_ROOT hierachy
-        internal RegistryKey createClassesRootKey(String name)
-        {
-            return createKey(name, hkcr);
-        }
-
-        // remove a registry key from the CURRENT_USER hierachy
-        private void removeCurrentUserKey(String name)
-        {
-            hkcu.DeleteSubKeyTree(name);
-        }
-
-        // remove a registry key from the CLASSES_ROOT hierachy
-        private void removeClassesRootKey(String name)
-        {
-            hkcr.DeleteSubKeyTree(name);
-        }
-
         internal void registerContextItem(String text, String command)
         {
             try
@@ -135,8 +115,7 @@ namespace PasteToFile
             }
             catch (Exception ex)
             {
-                //TODO make doballoon global
-                //prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+                Prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
             }
             finally
             {
@@ -167,8 +146,7 @@ namespace PasteToFile
             }
             catch (Exception ex)
             {
-                //TODO make doballoon global
-                //prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+                Prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
             }
         }
 
@@ -185,8 +163,7 @@ namespace PasteToFile
             }
             catch (Exception ex)
             {
-                //TODO make doballoon global
-                //prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+                Prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
             }
 
             return retval;
@@ -197,31 +174,212 @@ namespace PasteToFile
     class Ressource
     {
         internal static String Title        = "PasteToFile";
-        internal static String Version      = "0.2";
+        internal static String Version      = "0.2.1";
         internal static String Author       = "Florian Demmer";
         internal static String Website      = "http://florian.demmer.org";
         internal static String Email        = "florian@demmer.org";
         internal static String License      = "GPL 2.0";
     
-        internal static String RegKey_Version       = "Version";
-        internal static String RegKey_Mask_File     = "FileMask";
-        internal static String RegKey_Mask_Date     = "DateMask";
-        internal static String RegKey_Mask_Time     = "TimeMask";
-        internal static String RegKey_OutputPath    = "OutputPath";
-        internal static String RegKey_ImageFormat   = "ImageFormat";
-        internal static String RegKey_UpperCaseExt  = "UppercaseExtension";
-        internal static String RegKey_BalloonTimeout = "BalloonTimeout";
-        internal static String Mask_Date            = "<date>";
-        internal static String Mask_Time            = "<time>";
-        internal static String Mask_Extension       = "<ext>";
-        internal static String Default_Mask_File    = "sshot-<date>-<time>.<ext>";
-        internal static String Default_Mask_Date    = "yyyyMMdd";
-        internal static String Default_Mask_Time    = "HHmmss";
-        internal static String Default_OutputPath   = "";
-        internal static bool   Default_UpperCaseExt = false;
-        internal static bool   Default_ContextItem  = true;
-        internal static int    Default_ImageFormat  = 0;
-        internal static int    Default_BalloonTimeout = 3000;
+        internal static String RegKey_Version           = "Version";
+        internal static String RegKey_Mask_File         = "FileMask";
+        internal static String RegKey_Mask_Date         = "DateMask";
+        internal static String RegKey_Mask_Time         = "TimeMask";
+        internal static String RegKey_OutputPath        = "OutputPath";
+        internal static String RegKey_ImageFormat       = "ImageFormat";
+        internal static String RegKey_UpperCaseExt      = "UppercaseExtension";
+        internal static String RegKey_BalloonTimeout    = "BalloonTimeout";
+
+        internal static String Mask_Date                = "<date>";
+        internal static String Mask_Time                = "<time>";
+        internal static String Mask_Extension           = "<ext>";
+
+        internal static String Default_Mask_File        = "sshot-<date>-<time>.<ext>";
+        internal static String Default_Mask_Date        = "yyyyMMdd";
+        internal static String Default_Mask_Time        = "HHmmss";
+
+        internal static String Default_OutputPath       = "";
+        internal static String Default_UpperCaseExt     = "False";
+        internal static String Default_ContextItem      = "True";
+        internal static int    Default_ImageFormat      = 0;
+        internal static int    Default_BalloonTimeout   = 3000;
+
+    } // end of class
+
+    class Paster
+    {
+        Program Prog = null;
+        Image ImageData = null;
+        String TextData = null;
+
+        public Paster(Program prog)
+        {
+            Prog = prog;
+        }
+
+        internal bool retriveData()
+        {
+            IDataObject RawData = null;
+
+            try
+            {
+                RawData = Clipboard.GetDataObject();
+            }
+            catch (System.Runtime.InteropServices.ExternalException ex)
+            {
+                // clipboard is probably used by another process
+                Prog.doBalloon(ex.ToString(), Ressource.Title, ToolTipIcon.Error);
+                return false;
+            }
+
+            if (RawData == null)
+            {
+                //doBalloon("Sorry, the clipboard seems to be empty!", Ressource.Title, ToolTipIcon.Warning);
+                return false;
+            }
+
+            // get image data from the clipboard
+            if (RawData.GetDataPresent(DataFormats.Bitmap))
+            {
+                ImageData = (Image)RawData.GetData(DataFormats.Bitmap);
+                return true;
+            }
+
+            // get text data from the clipboard
+            if (RawData.GetDataPresent(DataFormats.Text))
+            {
+                TextData = (String)RawData.GetData(DataFormats.Text);
+                return true;
+            }
+
+            //doBalloon("Sorry, there is no useable image data in the clipboard!", Ressource.Title, ToolTipIcon.Warning);
+            return false;
+        }
+
+        internal bool writeData(bool here)
+        {
+            if (ImageData != null)
+                return writeImage(here);
+            if (TextData != null)
+                return writeText(here);
+            return false;
+        }
+
+        internal bool writeImage(bool here)
+        {
+            ImageFormat Format; 
+            switch ((int)Prog.Reg.Config.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat))
+            {
+                case 0:
+                    Format = ImageFormat.Png; 
+                    break;
+                case 1:
+                    Format = ImageFormat.Jpeg; 
+                    break;
+                case 2:
+                    Format = ImageFormat.Gif; 
+                    break;
+                case 3:
+                    Format = ImageFormat.Bmp; 
+                    break;
+                case 4:
+                    Format = ImageFormat.Tiff;
+                    break;
+                default:
+                    Format = ImageFormat.Png; 
+                    break;
+            }
+
+            String Extension = Format.ToString().ToLower();
+
+            // make extension uppercase
+            //TODO this seems to be b0rked.
+            if (bool.Parse((String)Prog.Reg.Config.GetValue(Ressource.RegKey_UpperCaseExt, Ressource.Default_UpperCaseExt)))
+                Extension.ToUpper();
+
+            // create a filename
+            String Output; 
+            if(here)
+                Output = Directory.GetCurrentDirectory() + "\\" + getFilename(Extension);
+            else
+                Output = getPath() + getFilename(Extension);
+
+            try
+            {
+                ImageData.Save(Output, Format);
+                Prog.doBalloon("\"" + Output + "\" successfully written...", Ressource.Title, ToolTipIcon.Info);
+                return true;
+            }
+            catch (System.Runtime.InteropServices.ExternalException)
+            {
+                Prog.doBalloon("System.Runtime.InteropServices.ExternalException", Ressource.Title, ToolTipIcon.Warning);
+            }
+            catch (System.Security.SecurityException)
+            {
+                Prog.doBalloon("Sorry, this cannot be run on a network drive!", Ressource.Title, ToolTipIcon.Warning);
+            }
+            catch (System.ArgumentException)
+            {
+                Prog.doBalloon("Check your filename for invalid characters! (" + Output + ")", Ressource.Title, ToolTipIcon.Warning);
+            }
+            catch (System.NotSupportedException)
+            {
+                Prog.doBalloon("Check your filename for invalid characters! (" + Output + ")", Ressource.Title, ToolTipIcon.Warning);
+            }
+            return false;
+        }
+
+        internal bool writeText(bool here)
+        {
+            return false;
+        }
+
+        private String getFilename(String extension)
+        {
+            // retrieve filename mask setting
+            String name = (String)Prog.Reg.Config.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
+
+            // generate timestamps
+            DateTime d = DateTime.Now;
+            String date = d.ToString((String)Prog.Reg.Config.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date));
+            String time = d.ToString((String)Prog.Reg.Config.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time));
+
+            // replace tags in filemask
+            if (name.Contains(Ressource.Mask_Date))
+                name = name.Replace(Ressource.Mask_Date, date);
+            if (name.Contains(Ressource.Mask_Time))
+                name = name.Replace(Ressource.Mask_Time, time);
+            if (name.Contains(Ressource.Mask_Extension))
+                name = name.Replace(Ressource.Mask_Extension, extension);
+
+            return name;
+        }
+
+        private String getPath()
+        {
+            String path = (string)Prog.Reg.Config.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
+
+            if (path == "")
+            {
+                return Directory.GetCurrentDirectory() + "\\";
+            }
+
+            if (!System.IO.Directory.Exists(path))
+            {
+                Prog.doBalloon("Directory \"" + path + "\" does not exist!\n Writing file to current directory.", Ressource.Title, ToolTipIcon.Error);
+                return Directory.GetCurrentDirectory() + "\\";
+            }
+
+            /*
+             *    .    does not work, use just ""
+             *    ""   empty... pastes to current directory
+             *    /    root of the drive p2f runs on
+             *    ../  one directoy up of place where p2f is run
+             *    c:\  well... c: :)
+             * 
+             */
+
+            return path + "\\";
+        }
 
     } // end of class
 
@@ -233,7 +391,7 @@ namespace PasteToFile
         public Program()
         {
             // access registry
-            Reg = new RegistryHandler();
+            Reg = new RegistryHandler(this);
 
             // prepare notification area
             TrayIcon = new System.Windows.Forms.NotifyIcon();
@@ -250,48 +408,6 @@ namespace PasteToFile
             Application.Run(new Options(Reg));
         }
         
-        private String getFilename(String extension)
-        {
-            // retrieve filename mask setting
-            String filename = (String)Reg.Config.GetValue(Ressource.RegKey_Mask_File, Ressource.Default_Mask_File);
-
-            // generate timestamps
-            DateTime d = DateTime.Now;
-            String date = d.ToString((String)Reg.Config.GetValue(Ressource.RegKey_Mask_Date, Ressource.Default_Mask_Date));
-            String time = d.ToString((String)Reg.Config.GetValue(Ressource.RegKey_Mask_Time, Ressource.Default_Mask_Time));
-
-            // replace tags in filemask
-            if (filename.Contains(Ressource.Mask_Date))
-                filename = filename.Replace(Ressource.Mask_Date, date);
-            if (filename.Contains(Ressource.Mask_Time))
-                filename = filename.Replace(Ressource.Mask_Time, time);
-            if (filename.Contains(Ressource.Mask_Extension))
-                filename = filename.Replace(Ressource.Mask_Extension, extension);
-
-            String path = (string)Reg.Config.GetValue(Ressource.RegKey_OutputPath, Ressource.Default_OutputPath);
-
-            if (path == "")
-                path = Application.StartupPath + "\\" + filename;
-            else if (System.IO.Directory.Exists(path))
-                path = path + "\\" + filename;
-            else
-            {
-                doBalloon("Directory \"" + path + "\" does not exist!\n Writing file to execution directory.", Ressource.Title, ToolTipIcon.Error);
-                path = Application.StartupPath + "\\" + filename;
-            }
-
-            /*
-             *    .    does not work, use just ""
-             *    ""   empty... pastes to execution dir
-             *    /    root of the directory p2f runs on
-             *    ../  one directoy up of place where p2f is run
-             *    c:\  well... c:! :)
-             * 
-             */
-
-            return path;
-        }
-
         internal void doBalloon(String Message, String Title, ToolTipIcon Icon)
         {
             int timeout = (int)Reg.Config.GetValue(Ressource.RegKey_BalloonTimeout, Ressource.Default_BalloonTimeout);
@@ -301,77 +417,36 @@ namespace PasteToFile
             TrayIcon.Visible = false;
         }
 
-        internal void doPaste(IDataObject obj) //, bool currentDirectory
+        // paste image to current directory
+        internal void doPasteHere()
         {
-            // get the image data from the clipboard
-            Image image = (Image)obj.GetData(DataFormats.Bitmap);
-
-            // set output format and file extension
-            ImageFormat format;
-            String extension;
-            switch ((int)Reg.Config.GetValue(Ressource.RegKey_ImageFormat, Ressource.Default_ImageFormat))
-            {
-                case 0:
-                    format = ImageFormat.Png; extension = "png"; break;
-                case 1:
-                    format = ImageFormat.Jpeg; extension = "jpg"; break;
-                case 2:
-                    format = ImageFormat.Gif; extension = "gif"; break;
-                case 3:
-                    format = ImageFormat.Bmp; extension = "bmp"; break;
-                case 4:
-                    format = ImageFormat.Tiff; extension = "tif"; break;
-                default:
-                    format = ImageFormat.Png; extension = "png"; break;
-            }
-
-            // make extension uppercase
-            if(bool.Parse((String)Reg.Config.GetValue(Ressource.RegKey_UpperCaseExt, Ressource.Default_UpperCaseExt)))
-                extension.ToUpper();
-
-            // create a filename
-            String filename = getFilename(extension);
-            //TODO seperate filename and directory retrival to make paste here and paste to default dir possible
-
-            try
-            {
-                // write output file
-                image.Save(filename, format);
-                // notify user
-                doBalloon("\"" + filename + "\" successfully written...", Ressource.Title, ToolTipIcon.Info);
-            }
-            catch (System.Runtime.InteropServices.ExternalException)
-            {
-                doBalloon("System.Runtime.InteropServices.ExternalException", Ressource.Title, ToolTipIcon.Warning);
-            }
-            catch (System.Security.SecurityException)
-            {
-                doBalloon("Sorry, this cannot be run on a network drive!", Ressource.Title, ToolTipIcon.Warning);
-            }
-            catch (System.ArgumentException)
-            {
-                doBalloon("Check your filename for invalid characters! (" + filename + ")", Ressource.Title, ToolTipIcon.Warning);
-            }
-            catch (System.NotSupportedException)
-            {
-                doBalloon("Check your filename for invalid characters! (" + filename + ")", Ressource.Title, ToolTipIcon.Warning);
-            }
-
+            Paster Pst = new Paster(this);
+            if (Pst.retriveData())
+                Pst.writeData(true);
         }
 
+        // paste image to default directory
+        internal void doPaste()
+        {
+            Paster Pst = new Paster(this);
+            if (Pst.retriveData())
+                Pst.writeData(false);
+        }
 
-    }
+    } // end of class
 
     class PasteToFile
     {
         [STAThread]
         static void Main(string[] args)
         {
-            // parse commandline arguments
-            CommandLine.Utility.Arguments Switches = new CommandLine.Utility.Arguments(args);
+            // create program instance
             Program prog = new Program();
 
-            // decide next steps...
+            // parse commandline arguments
+            CommandLine.Utility.Arguments Switches = new CommandLine.Utility.Arguments(args);
+
+            // evaluate commandline arguments
             if (Switches["about"] != null)
                 prog.showAbout();
             else if (Switches["help"] != null)
@@ -380,32 +455,10 @@ namespace PasteToFile
                 prog.showOptions();
             else if (Switches["setup"] != null)
                 prog.showOptions();
+            else if (Switches["here"] != null)
+                prog.doPasteHere();
             else
-            {
-                // do not continue if there is nothing in the clipboard
-                if (Clipboard.GetDataObject() == null)
-                {
-                    prog.doBalloon("Sorry, the clipboard seems to be empty!", Ressource.Title, ToolTipIcon.Warning);
-                }
-                else
-                {
-                   // also do not continue if there is not an image in the clipboard
-                    IDataObject obj = Clipboard.GetDataObject();
-                    if (!obj.GetDataPresent(DataFormats.Bitmap))
-                    {
-                        prog.doBalloon("Sorry, there is no useable image data in the clipboard!", Ressource.Title, ToolTipIcon.Warning);
-                    }
-                    else
-                    {
-                        // ONLY if there really is something useful available continue...
-                        //if (Switches["here"] != null)
-                        //    prog.doPaste(obj,bool);
-                        //else
-                            prog.doPaste(obj);
-                    }            
-                }            
-
-            } // end of else
+                prog.doPaste();
 
         } // end of Main
 
