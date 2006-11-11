@@ -21,7 +21,10 @@ namespace CommandLine.Utility{
 		// Variables
 		private StringDictionary Parameters;
 
-		// Constructor
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="Args"></param>
 		public Arguments(string[] Args){
 			Parameters=new StringDictionary();
 			Regex Spliter=new Regex(@"^-{1,2}|^/|=|:",RegexOptions.IgnoreCase|RegexOptions.Compiled);
@@ -77,7 +80,11 @@ namespace CommandLine.Utility{
 				}
 			}
 
-		// Retrieve a parameter value if it exists
+        /// <summary>
+        /// Retrieve a parameter value if it exists
+        /// </summary>
+        /// <param name="Param"></param>
+        /// <returns></returns>
 		public string this [string Param]{
 			get{
 				return(Parameters[Param]);
