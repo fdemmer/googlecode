@@ -18,6 +18,14 @@ infile="28263611600_20090201_20090301.csv"
 #        category => a category name
 
 import datetime
+import sys
+
+# use first argument as infile
+#TODO use optparse
+if len(sys.argv) >= 2:
+    infile = sys.argv[1]
+
+#TODO write file, not only printing the output
 
 fh = open(infile)
 for line in fh.readlines()[1:]:
