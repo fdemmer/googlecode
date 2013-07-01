@@ -24,24 +24,33 @@ import sys
 #TODO use optparse
 if len(sys.argv) >= 2:
     infile = sys.argv[1]
-
-#TODO write file, not only printing the output
-
-fh = open(infile)
-for line in fh.readlines()[1:]:
-    try:
-        (description, date, amount, currency) = line.replace("\"","").replace(",",".").split(";")
-    except:
-        continue
-    (day, month, year) = map(int, date.split("."))
-    date = datetime.date(year, month, day).strftime("%d-%m-%Y")
-    mode = ""
-    info = ""
-    payee = ""
-    description = description.decode('iso-8859-15').encode('utf-8','strict').strip()
-    amount = float(amount)
-    category = ""
-    output = [date, mode, info, payee, description, str(amount), category]
-    print ";".join(output)
+    outfile = infile.split('.')[0] + '_conv.' + infile.split('.')[1]
+else:
+    sys.exit(1)
 
 
+with open(infile, 'r') as input_fh:
+    with open(outfile, 'w') as output_fh:
+        for line in input_fh.readlines()[1:]:
+            try:
+                (memo, date, amount, currency) = (line
+                    .replace("\"", "")
+                    .replace(",", ".")
+                    .split(";")
+                )
+            except:
+                continue
+            (day, month, year) = map(int, date.split("."))
+            date = datetime.date(year, month, day).strftime("%d-%m-%Y")
+            mode = "0"
+            info = ""
+            payee = ""
+            memo = (memo
+                .decode('iso-8859-15')
+                .encode('utf-8', 'strict')
+                .strip())
+            amount = str(float(amount))
+            category = ""
+            tags = ""
+            output = [date, mode, info, payee, memo, amount, category, tags]
+            output_fh.write(";".join(output) + '\n')
